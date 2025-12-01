@@ -1,0 +1,37 @@
+Private Sub Worksheet_Change(ByVal Target As Range)
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim dict As Object
+    Dim i As Long
+    Dim cellValue As String
+    Dim checkChar As String
+    
+    ' Only trigger if the change is in column A
+    If Intersect(Target, Me.Columns("A")) Is Nothing Then Exit Sub
+    
+    Application.EnableEvents = False  ' Prevent re-triggering
+    Set ws = Me
+    
+    ' Clear previous coloring
+    ws.Columns("A").Interior.ColorIndex = xlNone
+    
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    Set dict = CreateObject("Scripting.Dictionary")
+    
+    For i = 1 To lastRow
+        cellValue = CStr(ws.Cells(i, "A").Value)
+        
+        If Len(cellValue) >= 14 Then
+            checkChar = Right(cellValue, 14)
+            
+            If dict.Exists(checkChar) Then
+                ws.Cells(i, "A").Interior.Color = vbRed
+                ws.Cells(dict(checkChar), "A").Interior.Color = vbRed
+            Else
+                dict(checkChar) = i
+            End If
+        End If
+    Next i
+    
+    Application.EnableEvents = True
+End Sub
