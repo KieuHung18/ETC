@@ -1,37 +1,51 @@
-Private Sub Worksheet_Change(ByVal Target As Range)
+Private Sub Workbook_Open()
     Dim ws As Worksheet
+
+    ' Make sure every sheet has "Scan Code" in A1
+    For Each ws In ThisWorkbook.Worksheets
+        If ws.Range("A1").Value = "" Then
+            ws.Range("A1").Value = "Scan Code"
+        End If
+    Next ws
+End Sub
+
+Private Sub Workbook_NewSheet(ByVal Sh As Object)
+    ' Auto fill new sheet A1
+    Sh.Range("A1").Value = "Scan Code"
+End Sub
+
+Private Sub Workbook_SheetChange(ByVal Sh As Object, ByVal Target As Range)
     Dim lastRow As Long
     Dim dict As Object
     Dim i As Long
     Dim cellValue As String
     Dim checkChar As String
-    
-    ' Only trigger if the change is in column A
-    If Intersect(Target, Me.Columns("A")) Is Nothing Then Exit Sub
-    
-    Application.EnableEvents = False  ' Prevent re-triggering
-    Set ws = Me
-    
+
+    ' Only run on column A
+    If Intersect(Target, Sh.Columns("A")) Is Nothing Then Exit Sub
+
+    Application.EnableEvents = False
+
     ' Clear previous coloring
-    ws.Columns("A").Interior.ColorIndex = xlNone
-    
-    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    Sh.Columns("A").Interior.ColorIndex = xlNone
+
+    lastRow = Sh.Cells(Sh.Rows.Count, "A").End(xlUp).Row
     Set dict = CreateObject("Scripting.Dictionary")
-    
+
     For i = 1 To lastRow
-        cellValue = CStr(ws.Cells(i, "A").Value)
-        
+        cellValue = CStr(Sh.Cells(i, "A").Value)
+
         If Len(cellValue) >= 14 Then
             checkChar = Right(cellValue, 14)
-            
+
             If dict.Exists(checkChar) Then
-                ws.Cells(i, "A").Interior.Color = vbRed
-                ws.Cells(dict(checkChar), "A").Interior.Color = vbRed
+                Sh.Cells(i, "A").Interior.Color = vbRed
+                Sh.Cells(dict(checkChar), "A").Interior.Color = vbRed
             Else
                 dict(checkChar) = i
             End If
         End If
     Next i
-    
+
     Application.EnableEvents = True
 End Sub
